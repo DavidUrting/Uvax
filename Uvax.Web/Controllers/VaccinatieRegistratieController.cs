@@ -22,12 +22,13 @@ namespace Uvax.Web.Controllers
         /// <param name="insz">INSZ nummer van de persoon die werd opgebeld.</param>
         /// <param name="isBeschikbaar">true indien de persoon beschikbaar is en dus kan komen.</param>
         /// <returns>
-        /// Indien het INSZ nummer gekend is krijg je een JSON antwoord terug met een string in waarin de naam van het vaccin zit dat toegediend zal worden.
+        /// Indien het INSZ nummer gekend is en de persoon is beschikbaar krijg je een JSON antwoord terug met een string in waarin de naam van het vaccin zit dat toegediend zal worden.
+        /// Indien het INSZ nummer gekend is en de persoon is niet beschikbaar krijg je een leeg antwoord terug.
         /// Indien het INSZ nummer niet gekend zit krijg je een NotFound terug. Dat duidt op een bug in jouw code: probeer ervoor te zorgen dat de gebruiker enkel gekende INSZ nummers kan doorsturen.
         /// </returns>
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult Post([FromBody] PersoonRegistratie registratie)
+        public IActionResult Post([FromBody] VaccinatieRegistratie registratie)
         {
             // Hier zou je de score (en opmerkingen) kunnen loggen in de database.
             // Dat is uiteraard out of scope voor dit examen!
@@ -42,7 +43,13 @@ namespace Uvax.Web.Controllers
             }
             else
             {
-                return Ok("Pfizer");
+                if (registratie.IsBeschikbaar)
+                {
+                    PersoonOpReseverlijst vanLijstTeHalenPersoon = ReservelijstController._personenOpLijst.Find(pol => pol.Insz == registratie.Insz);
+                    ReservelijstController._personenOpLijst.Remove(vanLijstTeHalenPersoon);
+                    return Ok("Pfizer");
+                }
+                else return Ok();
             }
             
             // Ter info voor de backend-geïnteresseerden: bemerk dat deze action een IActionResult teruggeeft. 

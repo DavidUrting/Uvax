@@ -9,7 +9,7 @@ namespace Uvax.Web.Controllers
     /// Deze API geeft beheert personen die ingeschreven zijn op de Uvax-reservelijst.
     /// Met Get kan je (willekeurig) een ingeschreven persoon ophalen.
     /// Met Post kan je een persoon toevoegen aan de lijst.
-    /// Met Delete kan je ene persoon weer verwijderen van de lijst.
+    /// Met Delete kan je een persoon weer verwijderen van de lijst.
     /// 
     /// Als sleutel wordt gebruik gemaakt van het INSZ nummer (ook wel het rijksregisternummer genoemd).
     /// </summary>
@@ -17,14 +17,21 @@ namespace Uvax.Web.Controllers
     [ApiController]
     public class ReservelijstController : ControllerBase
     {
-        internal static List<PersoonOpLijst> _personenOpLijst = new List<PersoonOpLijst>
+        internal static List<PersoonOpReseverlijst> _personenOpLijst = new List<PersoonOpReseverlijst>
         {
-            new PersoonOpLijst()
+            new PersoonOpReseverlijst()
             {
-                Insz = "123456780",
-                Voornaam = "David",
-                Familienaam = "Urting",
-                Telefoonnummer = "0485123456"
+                Insz = "55060801234",
+                Voornaam = "Tim",
+                Familienaam = "Berners-Lee",
+                Telefoonnummer = "4412457812"
+            },
+            new PersoonOpReseverlijst()
+            {
+                Insz = "37061701234",
+                Voornaam = "Cailliau",
+                Familienaam = "Robert",
+                Telefoonnummer = "012123456"
             }
         };
 
@@ -45,13 +52,13 @@ namespace Uvax.Web.Controllers
         /// Opgelet: je krijgt dus één object terug, geen array!
         /// </returns>
         [HttpGet]
-        public PersoonOpLijst Get()
+        public PersoonOpReseverlijst Get()
         {
             // Onderstaande statement geeft een willekeurige index in het interval [0, #quotes - 1].
             int randomJokeIndex = _random.Next(0, _personenOpLijst.Count - 1);
 
             // Op basis van deze index wordt de overeenkomstige quote uit de lijst gehaald.
-            PersoonOpLijst randomPersoonOpLijst = _personenOpLijst[randomJokeIndex];
+            PersoonOpReseverlijst randomPersoonOpLijst = _personenOpLijst[randomJokeIndex];
 
             return randomPersoonOpLijst;
         }
@@ -62,7 +69,7 @@ namespace Uvax.Web.Controllers
         /// </summary>
         /// <param name="inTeSchrijvenPersoon"></param>
         [HttpPost]
-        public void Post([FromBody] PersoonOpLijst inTeSchrijvenPersoon)
+        public void Post([FromBody] PersoonOpReseverlijst inTeSchrijvenPersoon)
         {
             if (!_personenOpLijst.Exists(pol => pol.Insz == inTeSchrijvenPersoon.Insz))
             {
@@ -78,7 +85,7 @@ namespace Uvax.Web.Controllers
         [HttpDelete]
         public void Delete([FromBody] string insz)
         {
-            PersoonOpLijst uitTeSchrijvenPersoon = _personenOpLijst.Find(pol => pol.Insz == insz);
+            PersoonOpReseverlijst uitTeSchrijvenPersoon = _personenOpLijst.Find(pol => pol.Insz == insz);
             if (uitTeSchrijvenPersoon != null)
             {
                 _personenOpLijst.Remove(uitTeSchrijvenPersoon);

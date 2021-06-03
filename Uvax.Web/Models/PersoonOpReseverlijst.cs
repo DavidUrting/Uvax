@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 
 namespace Uvax.Web.Models
 {
-    public class PersoonRegistratie
+    public class PersoonOpReseverlijst
     {
         public string Insz { get; set; }
-        public bool IsBeschikbaar { get; set; }
+        public string Familienaam { get; set; }
+        public string Voornaam { get; set; }
+        public string Telefoonnummer { get; set; }
     }
 }
