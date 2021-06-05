@@ -21,7 +21,7 @@
     },
     "resourceName": {
       "type": "string",
-      "defaultValue": "ucll-programmer-quotes",
+      "defaultValue": "uvax",
       "metadata": {
         "description": "Name of the main resource to be created by this template."
       }

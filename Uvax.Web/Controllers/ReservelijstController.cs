@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Uvax.Web.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Uvax.Web.Models;
 
 namespace Uvax.Web.Controllers
 {
@@ -17,16 +18,16 @@ namespace Uvax.Web.Controllers
     [ApiController]
     public class ReservelijstController : ControllerBase
     {
-        internal static List<PersoonOpReseverlijst> _personenOpLijst = new List<PersoonOpReseverlijst>
+        internal static List<PersoonOpReservelijst> _personenOpLijst = new List<PersoonOpReservelijst>
         {
-            new PersoonOpReseverlijst()
+            new PersoonOpReservelijst()
             {
                 Insz = "55060801234",
                 Voornaam = "Tim",
                 Familienaam = "Berners-Lee",
                 Telefoonnummer = "4412457812"
             },
-            new PersoonOpReseverlijst()
+            new PersoonOpReservelijst()
             {
                 Insz = "37061701234",
                 Voornaam = "Cailliau",
@@ -50,17 +51,26 @@ namespace Uvax.Web.Controllers
         /// - familienaam
         /// - telefoonnumer (= dit nummer zal gebeld worden door de medewerker van het vaccinatiecentrum)
         /// Opgelet: je krijgt dus één object terug, geen array!
+        /// Indien er geen kandidaten meer zijn voor vandaag wordt null teruggegeven.
         /// </returns>
         [HttpGet]
-        public PersoonOpReseverlijst Get()
+        public PersoonOpReservelijst Get()
         {
-            // Onderstaande statement geeft een willekeurige index in het interval [0, #quotes - 1].
-            int randomJokeIndex = _random.Next(0, _personenOpLijst.Count - 1);
+            var personenDieNogNietGecontacteerdWerdenVandaag = _personenOpLijst
+                .Where(pol => pol.LaastGecontacteerdOp == null || pol.LaastGecontacteerdOp < new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day))
+                .ToList();
 
-            // Op basis van deze index wordt de overeenkomstige quote uit de lijst gehaald.
-            PersoonOpReseverlijst randomPersoonOpLijst = _personenOpLijst[randomJokeIndex];
+            if (personenDieNogNietGecontacteerdWerdenVandaag.Count > 0)
+            {
+                // Onderstaande statement geeft een willekeurige index in het interval [0, #personen - 1].
+                int willekeurigePersoonIndex = _random.Next(0, personenDieNogNietGecontacteerdWerdenVandaag.Count);
 
-            return randomPersoonOpLijst;
+                // Op basis van deze index wordt de overeenkomstige persoon uit de lijst gehaald.
+                PersoonOpReservelijst randomPersoonOpLijst = personenDieNogNietGecontacteerdWerdenVandaag[willekeurigePersoonIndex];
+
+                return randomPersoonOpLijst;
+            }
+            else return null;
         }
 
         /// <summary>
@@ -69,11 +79,16 @@ namespace Uvax.Web.Controllers
         /// </summary>
         /// <param name="inTeSchrijvenPersoon"></param>
         [HttpPost]
-        public void Post([FromBody] PersoonOpReseverlijst inTeSchrijvenPersoon)
+        public IActionResult Post([FromBody] PersoonOpReservelijst inTeSchrijvenPersoon)
         {
             if (!_personenOpLijst.Exists(pol => pol.Insz == inTeSchrijvenPersoon.Insz))
             {
                 _personenOpLijst.Add(inTeSchrijvenPersoon);
+                return NoContent();
+            }
+            else
+            {
+                return BadRequest($"Er is al een persoon met INSZ {inTeSchrijvenPersoon.Insz} ingeschreven op de lijst.");
             }
         }
 
@@ -85,7 +100,7 @@ namespace Uvax.Web.Controllers
         [HttpDelete]
         public void Delete([FromBody] string insz)
         {
-            PersoonOpReseverlijst uitTeSchrijvenPersoon = _personenOpLijst.Find(pol => pol.Insz == insz);
+            PersoonOpReservelijst uitTeSchrijvenPersoon = _personenOpLijst.Find(pol => pol.Insz == insz);
             if (uitTeSchrijvenPersoon != null)
             {
                 _personenOpLijst.Remove(uitTeSchrijvenPersoon);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using Uvax.Web.Models;
 
 namespace Uvax.Web.Controllers
@@ -8,7 +9,7 @@ namespace Uvax.Web.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class VaccinatieRegistratieController : ControllerBase
+    public class BeschikbaarheidController : ControllerBase
     {
         /// <summary>
         /// Deze action kan je oproepen met een HTTP POST request naar de url /api/vaccinatieregistratie.
@@ -28,28 +29,41 @@ namespace Uvax.Web.Controllers
         /// </returns>
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult Post([FromBody] VaccinatieRegistratie registratie)
+        public IActionResult Post([FromBody] PersoonBeschikbaarheid registratie)
         {
-            // Hier zou je de score (en opmerkingen) kunnen loggen in de database.
-            // Dat is uiteraard out of scope voor dit examen!
-            // ...
-
             // Onderstaande code controleert of het INSZ nummer gekend is.
-            // Zoniet wordt een NotFound teruggestuurd (HTTP status code 404).
-            // Zoja wordt een boodschap teruggestuurd naar de front end waarin het toegediende vaccin zit (HTTP status code 200).
             if (!ReservelijstController._personenOpLijst.Exists(pol => pol.Insz == registratie.Insz))
             {
+                // Zoniet wordt een NotFound teruggestuurd (HTTP status code 404).
                 return BadRequest($"De persoon met INSZ {registratie.Insz} komt niet op de reservelijst voor.");
             }
             else
             {
+                // Zoja, wordt nagegaan of de persoon beschikbaar is om in te vallen...
+                PersoonOpReservelijst persoonOpDeLijst = ReservelijstController._personenOpLijst.Find(pol => pol.Insz == registratie.Insz);
                 if (registratie.IsBeschikbaar)
                 {
-                    PersoonOpReseverlijst vanLijstTeHalenPersoon = ReservelijstController._personenOpLijst.Find(pol => pol.Insz == registratie.Insz);
-                    ReservelijstController._personenOpLijst.Remove(vanLijstTeHalenPersoon);
-                    return Ok("Pfizer");
+                    if (string.IsNullOrWhiteSpace(registratie.ValtInVoorInsz))
+                    {
+                        return BadRequest($"Persoon {registratie.Insz} is beschikbaar. In dat geval moet {nameof(registratie.ValtInVoorInsz)} ingevuld zijn.");
+                    }
+                    else
+                    {
+                        // Hier zou je originele afspraak kunnen ophalen en koppelen aan het nieuwe INSZ.
+                        // Dat is uiteraard out of scope voor dit examen!
+                        // ...
+
+                        // Zoja wordt een boodschap teruggestuurd naar de front end waarin het toegediende vaccin zit (HTTP status code 200).
+                        ReservelijstController._personenOpLijst.Remove(persoonOpDeLijst);
+                        return Ok("Pfizer");
+                    }
                 }
-                else return Ok();
+                else
+                {
+                    // Zoniet onthoudt het systeem dat de klant (vandaag) niet meer moet aangeboden worden als potentiële invaller.
+                    persoonOpDeLijst.LaastGecontacteerdOp = DateTime.Now;
+                    return Ok();
+                }
             }
             
             // Ter info voor de backend-geïnteresseerden: bemerk dat deze action een IActionResult teruggeeft. 

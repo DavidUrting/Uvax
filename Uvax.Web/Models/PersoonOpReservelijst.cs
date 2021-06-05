@@ -1,15 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace Uvax.Web.Models
 {
-    public class PersoonOpReseverlijst
+    public class PersoonOpReservelijst
     {
         public string Insz { get; set; }
         public string Familienaam { get; set; }
         public string Voornaam { get; set; }
         public string Telefoonnummer { get; set; }
+
+        [JsonIgnore]
+        public DateTime? LaastGecontacteerdOp { get; set; }
     }
 }
