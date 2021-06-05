@@ -5,62 +5,75 @@ using Uvax.Web.Models;
 namespace Uvax.Web.Controllers
 {
     /// <summary>
-    /// Via deze API kan een medewerker een opgebelde gebruiker al dan niet registreren voor een vaccinatie.
+    /// Via deze API kan een medewerker aangeven of een gecontacteerde persoon al dan niet beschikbaar is.
+    /// Indien de persoon niet gecontacteerd kon worden wordt deze API niet gebruikt.
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class BeschikbaarheidController : ControllerBase
     {
         /// <summary>
-        /// Deze action kan je oproepen met een HTTP POST request naar de url /api/vaccinatieregistratie.
+        /// Deze action kan je oproepen met een HTTP POST request naar de url /api/beschikbaarheid.
+        /// </summary>
+        /// <param name="persoonBeschikbaarheid">        
         /// Aan deze action kan je een JSON object meegeven van volgende structuur: 
         /// { 
-        ///     "inze": "...", 
-        ///     "isBeschikbaar: true|false 
+        ///     "insz": "...", // insz nummer van de persoon die gecontacteerd werd
+        ///     "isBeschikbaar: true|false, // true indien de persoon beschikbaar is
+        ///     "valtInVoorInsz": "" // insz nummer van de persoon die geannuleerd heeft
         /// }.
         /// Opgelet: je moet dus een object doorgeven, geen array!
-        /// </summary>
-        /// <param name="insz">INSZ nummer van de persoon die werd opgebeld.</param>
-        /// <param name="isBeschikbaar">true indien de persoon beschikbaar is en dus kan komen.</param>
+        /// </param>
         /// <returns>
         /// Indien het INSZ nummer gekend is en de persoon is beschikbaar krijg je een JSON antwoord terug met een string in waarin de naam van het vaccin zit dat toegediend zal worden.
+        /// (Opgelet: indien de persoon beschikbaar is moet "valtInVoorInsz" ook ingevuld zijn, anders krijg je een BadRequest terug).
         /// Indien het INSZ nummer gekend is en de persoon is niet beschikbaar krijg je een leeg antwoord terug.
         /// Indien het INSZ nummer niet gekend zit krijg je een NotFound terug. Dat duidt op een bug in jouw code: probeer ervoor te zorgen dat de gebruiker enkel gekende INSZ nummers kan doorsturen.
         /// </returns>
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult Post([FromBody] PersoonBeschikbaarheid registratie)
+        public IActionResult Post([FromBody] PersoonBeschikbaarheid persoonBeschikbaarheid)
         {
             // Onderstaande code controleert of het INSZ nummer gekend is.
-            if (!ReservelijstController._personenOpLijst.Exists(pol => pol.Insz == registratie.Insz))
+            if (!ReservelijstController._personenOpLijst.Exists(pol => pol.Insz == persoonBeschikbaarheid.Insz))
             {
                 // Zoniet wordt een NotFound teruggestuurd (HTTP status code 404).
-                return BadRequest($"De persoon met INSZ {registratie.Insz} komt niet op de reservelijst voor.");
+                return NotFound($"De persoon met INSZ {persoonBeschikbaarheid.Insz} komt niet op de reservelijst voor.");
             }
             else
             {
                 // Zoja, wordt nagegaan of de persoon beschikbaar is om in te vallen...
-                PersoonOpReservelijst persoonOpDeLijst = ReservelijstController._personenOpLijst.Find(pol => pol.Insz == registratie.Insz);
-                if (registratie.IsBeschikbaar)
+                PersoonOpReservelijst persoonOpDeLijst = ReservelijstController._personenOpLijst
+                    .Find(pol => pol.Insz == persoonBeschikbaarheid.Insz);
+                if (persoonBeschikbaarheid.IsBeschikbaar)
                 {
-                    if (string.IsNullOrWhiteSpace(registratie.ValtInVoorInsz))
+                    // ... de persoon is beschikbaar.
+                    if (string.IsNullOrWhiteSpace(persoonBeschikbaarheid.ValtInVoorInsz))
                     {
-                        return BadRequest($"Persoon {registratie.Insz} is beschikbaar. In dat geval moet {nameof(registratie.ValtInVoorInsz)} ingevuld zijn.");
+                        // In dat geval moet ook het INSZ nummer doorgegeven worden van de persoon die geannuleerd heeft.
+                        return BadRequest($"Persoon {persoonBeschikbaarheid.Insz} is beschikbaar. In dat geval moet {nameof(persoonBeschikbaarheid.ValtInVoorInsz)} ingevuld zijn.");
                     }
                     else
                     {
+                        string vaccin = "Pfizer";
                         // Hier zou je originele afspraak kunnen ophalen en koppelen aan het nieuwe INSZ.
                         // Dat is uiteraard out of scope voor dit examen!
+                        // var afspraak = (from a in _context.Afspraken
+                        //                where a.Insz == persoonBeschikbaarheid.ValtInVoorInsz
+                        //                select a).FirstOrDefault();
+                        // afspraak.Insz = persoonBeschikbaarheid.ValtInVoorInsz;
+                        // _context.SaveChanges();
+                        // vaccin = afspraak.Vaccing;
                         // ...
 
-                        // Zoja wordt een boodschap teruggestuurd naar de front end waarin het toegediende vaccin zit (HTTP status code 200).
+                        // Vervolgens wordt een boodschap teruggestuurd naar de front end waarin het toegediende vaccin zit (HTTP status code 200).
                         ReservelijstController._personenOpLijst.Remove(persoonOpDeLijst);
-                        return Ok("Pfizer");
+                        return Ok(vaccin);
                     }
                 }
                 else
                 {
-                    // Zoniet onthoudt het systeem dat de klant (vandaag) niet meer moet aangeboden worden als potentiële invaller.
+                    // ... de persoon is niet beschikbaar. Het systeem onthoudt dat de klant (vandaag) niet meer moet aangeboden worden als potentiële invaller.
                     persoonOpDeLijst.LaastGecontacteerdOp = DateTime.Now;
                     return Ok();
                 }

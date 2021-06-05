@@ -22,6 +22,27 @@ namespace Uvax.Web.Controllers
         {
             new PersoonOpReservelijst()
             {
+                Insz = "34061301234",
+                Voornaam = "Leonard",
+                Familienaam = "Kleinrock",
+                Telefoonnummer = "112345670"
+            },
+            new PersoonOpReservelijst()
+            {
+                Insz = "43062301234",
+                Voornaam = "Vinton",
+                Familienaam = "Cerf",
+                Telefoonnummer = "112345671"
+            },
+            new PersoonOpReservelijst()
+            {
+                Insz = "38122301234",
+                Voornaam = "Bob",
+                Familienaam = "Kahn",
+                Telefoonnummer = "112345672"
+            },
+            new PersoonOpReservelijst()
+            {
                 Insz = "55060801234",
                 Voornaam = "Tim",
                 Familienaam = "Berners-Lee",
@@ -45,13 +66,13 @@ namespace Uvax.Web.Controllers
         /// Deze action kan je oproepen met een HTTP GET request naar de relatieve url /api/reservelijst.
         /// </summary>
         /// <returns>
-        /// Een JSON antwoord met één PersoonOpLijst object (bestaande uit 4 properties).
-        /// - insz bevat het rijksregisternummer van de persoon.
+        /// Een JSON antwoord met één PersoonOpReservelijst object (bestaande uit 4 properties).
+        /// - insz (bevat het rijksregisternummer van de persoon).
         /// - voornaam
         /// - familienaam
         /// - telefoonnumer (= dit nummer zal gebeld worden door de medewerker van het vaccinatiecentrum)
         /// Opgelet: je krijgt dus één object terug, geen array!
-        /// Indien er geen kandidaten meer zijn voor vandaag wordt null teruggegeven.
+        /// Indien er geen kandidaten (meer) zijn wordt null teruggegeven.
         /// </returns>
         [HttpGet]
         public PersoonOpReservelijst Get()
@@ -77,7 +98,7 @@ namespace Uvax.Web.Controllers
         /// Bonus: inschrijven van een persoon.
         /// Deze action kan je oproepen met een HTTP POST request naar de relatieve url /api/reservelijst.
         /// </summary>
-        /// <param name="inTeSchrijvenPersoon"></param>
+        /// <param name="inTeSchrijvenPersoon">Een JSON request met één PersoonOpReservelijst object.</param>
         [HttpPost]
         public IActionResult Post([FromBody] PersoonOpReservelijst inTeSchrijvenPersoon)
         {
@@ -96,7 +117,7 @@ namespace Uvax.Web.Controllers
         /// Bonus: uitschrijven van een persoon.
         /// Deze action kan je oproepen met een HTTP DELETE request naar de relatieve url /api/reservelijst.
         /// </summary>
-        /// <param name="insz"></param>
+        /// <param name="insz">Een JSON request met één string (dus geen object doorgeven! Enkel een string doorgeven)</param>
         [HttpDelete]
         public void Delete([FromBody] string insz)
         {
