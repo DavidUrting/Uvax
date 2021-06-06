@@ -25,9 +25,9 @@ namespace Uvax.Web.Controllers
         /// Opgelet: je moet dus een object doorgeven, geen array!
         /// </param>
         /// <returns>
-        /// Indien het INSZ nummer gekend is en de persoon is beschikbaar krijg je een JSON antwoord terug met een string in waarin de naam van het vaccin zit dat toegediend zal worden.
+        /// Indien het INSZ nummer gekend is en de persoon is beschikbaar krijg je een leeg antwoord terug. De persoon wordt dan van de reservelijst gehaald en aan de afspraak gekoppeld.
         /// (Opgelet: indien de persoon beschikbaar is moet "valtInVoorInsz" ook ingevuld zijn, anders krijg je een BadRequest terug).
-        /// Indien het INSZ nummer gekend is en de persoon is niet beschikbaar krijg je een leeg antwoord terug.
+        /// Indien het INSZ nummer gekend is en de persoon is niet beschikbaar krijg je een leeg antwoord terug. De persoon zal niet meer geselecteerd worden vandaag.
         /// Indien het INSZ nummer niet gekend zit krijg je een NotFound terug. Dat duidt op een bug in jouw code: probeer ervoor te zorgen dat de gebruiker enkel gekende INSZ nummers kan doorsturen.
         /// </returns>
         [HttpPost]
@@ -55,7 +55,6 @@ namespace Uvax.Web.Controllers
                     }
                     else
                     {
-                        string vaccin = "Pfizer";
                         // Hier zou je originele afspraak kunnen ophalen en koppelen aan het nieuwe INSZ.
                         // Dat is uiteraard out of scope voor dit examen!
                         // var afspraak = (from a in _context.Afspraken
@@ -68,7 +67,7 @@ namespace Uvax.Web.Controllers
 
                         // Vervolgens wordt een boodschap teruggestuurd naar de front end waarin het toegediende vaccin zit (HTTP status code 200).
                         ReservelijstController._personenOpLijst.Remove(persoonOpDeLijst);
-                        return Ok(vaccin);
+                        return Ok();
                     }
                 }
                 else
