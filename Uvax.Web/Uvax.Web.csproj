@@ -5,5 +5,9 @@
     <UserSecretsId>05931551-3ab4-4b0a-a4b8-10d5a38ed21b</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 
 </Project>
