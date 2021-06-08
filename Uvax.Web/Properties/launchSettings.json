@@ -12,6 +12,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
+      "launchUrl": "api/reservelijst",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -19,7 +20,7 @@
     "ProgrammerQuotes.Web": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/quote",
+      "launchUrl": "api/reservelijst",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
